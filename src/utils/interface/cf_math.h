@@ -36,3 +36,9 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include "arm_math.h"
 #pragma GCC diagnostic pop
+
+#define DEG_TO_RAD (PI/180.0f)
+#define RAD_TO_DEG (180.0f/PI)
+
+#define MIN(a, b) ((b) < (a) ? (b) : (a))
+#define MAX(a, b) ((b) > (a) ? (b) : (a))

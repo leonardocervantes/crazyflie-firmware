@@ -29,6 +29,10 @@
 #include <stdbool.h>
 #include "eprintf.h"
 
+#ifdef UART2_LINK_COMM
+#include "syslink.h"
+#endif
+
 #define UART2_DATA_TIMEOUT_MS    1000
 #define UART2_DATA_TIMEOUT_TICKS (UART2_DATA_TIMEOUT_MS / portTICK_RATE_MS)
 
@@ -37,9 +41,11 @@
 #define ENABLE_UART2_RCC       RCC_APB1PeriphClockCmd
 #define UART2_IRQ              USART2_IRQn
 
-#define UART2_DMA_IRQ          DMA1_Channel2_IRQn
-#define UART2_DMA_IT_TC        DMA1_IT_TC2
-#define UART2_DMA_CH           DMA1_Channel2
+#define UART2_DMA_IRQ           DMA1_Stream6_IRQn
+#define UART2_DMA_IT_TC         DMA_IT_TC4
+#define UART2_DMA_STREAM        DMA1_Stream6
+#define UART2_DMA_CH            DMA_Channel_4
+#define UART2_DMA_FLAG_TCIF     DMA_FLAG_TCIF6
 
 #define UART2_GPIO_PERIF       RCC_AHB1Periph_GPIOA
 #define UART2_GPIO_PORT        GPIOA
@@ -63,13 +69,6 @@ void uart2Init(const uint32_t baudrate);
 bool uart2Test(void);
 
 /**
- * Read a byte of data from incoming queue with a timeout defined by UART2_DATA_TIMEOUT_MS
- * @param[out] c  Read byte
- * @return true if data, false if timeout was reached.
- */
-bool uart2GetDataWithTimout(uint8_t *c);
-
-/**
  * Sends raw data using a lock. Should be used from
  * exception functions and for debugging when a lot of data
  * should be transfered.
@@ -79,12 +78,36 @@ bool uart2GetDataWithTimout(uint8_t *c);
 void uart2SendData(uint32_t size, uint8_t* data);
 
 /**
+ * Sends raw data using DMA transfer.
+ * @param[in] size  Number of bytes to send
+ * @param[in] data  Pointer to data
+ */
+void uart2SendDataDmaBlocking(uint32_t size, uint8_t* data);
+
+/**
  * Send a single character to the serial port using the uartSendData function.
  * @param[in] ch Character to print. Only the 8 LSB are used.
  *
  * @return Character printed
  */
 int uart2Putchar(int ch);
+
+#ifdef UART2_LINK_COMM
+
+/**
+ * Get data from rx queue. Blocks until data is available.
+ * @param[out] slp Pointer to a complete syslink packet
+ */
+void uart2GetPacketBlocking(SyslinkPacket* slp);
+
+#else
+
+/**
+ * Read a byte of data from incoming queue with a timeout defined by UART2_DATA_TIMEOUT_MS
+ * @param[out] c  Read byte
+ * @return true if data, false if timeout was reached.
+ */
+bool uart2GetDataWithTimout(uint8_t *c);
 
 void uart2Getchar(char * ch);
 
@@ -95,6 +118,8 @@ void uart2Getchar(char * ch);
  * @return true if an overrun condition has happened
  */
 bool uart2DidOverrun();
+
+#endif
 
 /**
  * Uart printf macro that uses eprintf

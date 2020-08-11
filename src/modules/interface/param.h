@@ -1,6 +1,6 @@
 /**
- *    ||          ____  _ __                           
- * +------+      / __ )(_) /_______________ _____  ___ 
+ *    ||          ____  _ __
+ * +------+      / __ )(_) /_______________ _____  ___
  * | 0xBC |     / __  / / __/ ___/ ___/ __ `/_  / / _ \
  * +------+    / /_/ / / /_/ /__/ /  / /_/ / / /_/  __/
  *  ||  ||    /_____/_/\__/\___/_/   \__,_/ /___/\___/
@@ -33,6 +33,19 @@
 /* Public functions */
 void paramInit(void);
 bool paramTest(void);
+
+/* Internal access of param variables */
+int paramGetVarId(char* group, char* name);
+int paramGetType(int varid);
+void paramGetGroupAndName(int varid, char** group, char** name);
+void* paramGetAddress(int varid);
+uint8_t paramVarSize(int type);
+float paramGetFloat(int varid);
+int paramGetInt(int varid);
+unsigned int paramGetUint(int varid);
+void paramSetInt(int varid, int valuei);
+void paramSetFloat(int varid, float valuef);
+
 
 /* Basic parameter structure */
 struct param_s {
@@ -74,6 +87,8 @@ struct param_s {
 #define PARAM_FLOAT (PARAM_4BYTES | PARAM_TYPE_FLOAT | PARAM_SIGNED)
 
 /* Macros */
+#ifndef UNIT_TEST_MODE
+
 #define PARAM_ADD(TYPE, NAME, ADDRESS) \
    { .type = TYPE, .name = #NAME, .address = (void*)(ADDRESS), },
 
@@ -91,5 +106,14 @@ struct param_s {
   PARAM_ADD_GROUP(PARAM_GROUP | PARAM_STOP, stop_##NAME, 0x0) \
   };
 
-#endif /* __PARAM_H__ */
+#else // UNIT_TEST_MODE
 
+// Empty defines when running unit tests
+#define PARAM_ADD(TYPE, NAME, ADDRESS)
+#define PARAM_ADD_GROUP(TYPE, NAME, ADDRESS)
+#define PARAM_GROUP_START(NAME)
+#define PARAM_GROUP_STOP(NAME)
+
+#endif // UNIT_TEST_MODE
+
+#endif /* __PARAM_H__ */
